@@ -1,0 +1,23 @@
+---
+import RootLayout from '@/layouts/root-layout.astro'
+import HeroSection from '@/components/hero-section.astro'
+import WhatsappButton from '@/components/whatsapp-button.astro'
+---
+
+<RootLayout showFooter={false}>
+  <main class="flex flex-col min-h-dvh relative">
+      <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10 opacity-50">
+        <div 
+          class="absolute top-0 right-0 w-[80vw] md:w-[60vw] h-[60vh] md:h-screen bg-blob opacity-80 pointer-events-none -z-10 translate-x-[15%] -translate-y-[10%]" 
+          style="border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%"
+        ></div>
+        
+        <div 
+          class="absolute bottom-0 left-0 w-[90vw] md:w-[50vw] h-[40vh] md:h-[80vh] bg-blob opacity-60 pointer-events-none -z-10 -translate-x-[20%] translate-y-[20%]" 
+          style="border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%"
+        ></div>
+      </div>
+    <HeroSection />
+  </main>
+  <WhatsappButton />
+</RootLayout>

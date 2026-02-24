@@ -1,0 +1,64 @@
+---
+export const prerender = false
+
+import RootLayout from '@/layouts/root-layout.astro'
+import NotFound from './404.astro'
+import { getEntryBySlug } from '@/lib/rush'
+import { tiptapToHtml } from '@/lib/rush/blocks/tiptap-to-html'
+
+const { slug } = Astro.params
+
+let pageData = null
+
+if (slug) {
+  const collectionsToTry = [15, 14] // ID 15 = Páginas, ID 14 = Blog
+
+  for (const collectionId of collectionsToTry) {
+    try {
+      const response = await getEntryBySlug(collectionId, slug)
+      if (response?.id) {
+        pageData = response
+        break
+      }
+    } catch (error) {
+      // Continua para a próxima coleção se der 404
+    }
+  }
+}
+
+let pageContentHtml = ''
+
+if (!pageData) {
+  console.warn(`[Wildcard]: Nenhuma entrada encontrada para o slug '${slug}' nas coleções conhecidas.`)
+  Astro.response.status = 404
+} else {
+  // Em Rush CMS V2, o conteúdo principal em formato de blocos/TipTap geralmente vem dentro de `entry.data.content`
+  if (pageData.data?.content) {
+    const contentDoc = pageData.data.content
+    // Envolve em { content: [...] } caso o JSON raiz seja uma Array
+    const rawTipTap = Array.isArray(contentDoc) ? { type: 'doc', content: contentDoc } : contentDoc
+    pageContentHtml = tiptapToHtml(rawTipTap as any)
+  }
+}
+---
+
+{!pageData ? (
+  <NotFound />
+) : (
+  <RootLayout title={pageData.title}>
+    <div class="pt-40 max-lg:pt-48 pb-20 min-h-[65vh]">
+      <div class="w-full max-w-4xl mx-auto px-6 md:px-12">
+        <h1 class="text-4xl md:text-5xl lg:text-7xl font-black text-brand-blue mb-12 leading-tight tracking-tight">
+          {pageData.title}
+        </h1>
+        
+        {pageContentHtml && (
+          <div 
+            class="prose prose-xl prose-pink max-w-none text-slate-700 leading-relaxed" 
+            set:html={pageContentHtml} 
+          />
+        )}
+      </div>
+    </div>
+  </RootLayout>
+)}
