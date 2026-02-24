@@ -1,0 +1,90 @@
+---
+import Container from './container.astro'
+import { getNav, rushConfig } from '@/lib/rush'
+import IconInstagram from '~icons/ph/instagram-logo'
+import IconFacebook from '~icons/ph/facebook-logo'
+
+let footerItems: { label: string; href: string }[] = []
+
+try {
+  const footerMenuId = import.meta.env.RUSH_NAV_FOOTER_ID
+  if (footerMenuId) {
+    const rushNavs = await getNav(footerMenuId)
+    if (rushNavs?.data?.items) {
+      footerItems = rushNavs.data.items.map((item) => {
+        let href = '#'
+        if (item.type === 'url' && item.url) {
+          href = item.url
+        } else if (item.type === 'entry' && item.entry?.slug) {
+          href = `/${item.entry.slug.pt_BR || item.entry.slug.en || ''}`
+        } else if (item.type === 'collection' && item.collection?.slug) {
+          href = `/${item.collection.slug.pt_BR || item.collection.slug.en || ''}`
+        }
+        return { label: item.title, href }
+      })
+    }
+  }
+} catch (e) {
+  console.error('Falha ao carregar o menu de rodapé do Rush CMS:', e)
+}
+
+const currentYear = new Date().getFullYear()
+const utmTags = 'utm_source=aplicadamente&utm_campaign=client_referral&utm_content=footer'
+---
+
+<footer class="bg-brand-blue/5 border-t border-brand-pink/10 py-12 md:py-16 mt-auto">
+  <Container class="flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+    <div class="flex flex-col items-center md:items-start gap-4">
+      <a href="/" class="text-2xl font-bold text-brand-pink tracking-tight">
+        {import.meta.env.SITE_NAME}
+      </a>
+      <p class="text-slate-500 text-sm max-w-xs leading-relaxed">
+        {import.meta.env.SITE_SLOGAN}
+      </p>
+    </div>
+
+    <div class="flex flex-col items-center md:items-end gap-6">
+      {footerItems.length > 0 && (
+        <nav class="flex flex-wrap justify-center md:justify-end gap-6 md:gap-8">
+          {footerItems.map((item) => (
+            <a
+              href={item.href}
+              class="text-slate-600 font-medium hover:text-brand-pink transition-colors text-sm"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      <div class="flex items-center gap-6">
+        {import.meta.env.INSTAGRAM_URL && (
+          <a href={import.meta.env.INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-brand-pink transition-colors" aria-label="Instagram">
+            <IconInstagram class="w-6 h-6" />
+          </a>
+        )}
+        {import.meta.env.FACEBOOK_URL && (
+          <a href={import.meta.env.FACEBOOK_URL} target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-brand-pink transition-colors" aria-label="Facebook">
+            <IconFacebook class="w-6 h-6" />
+          </a>
+        )}
+      </div>
+    </div>
+  </Container>
+
+  <div class="w-full h-px bg-brand-pink/10 my-8"></div>
+
+  <Container class="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+    <p>&copy; {currentYear} {import.meta.env.SITE_NAME}. Todos os direitos reservados.</p>
+      <p class="flex items-center justify-end flex-row gap-2 text-xs sm:text-sm text-gray-500">
+          <span>Feito por</span>
+          <a href={`https://rafhael.pro?${utmTags}`} target="_blank" rel="noopener noreferrer">
+              <img src="/rafhael-marsigli.svg" alt="Rafhael Marsigli" class="w-8 h-8 rounded-md shadow-md" />
+          </a>
+          <span>Powered by</span>
+          <a href={`https://rushcms.com?${utmTags}`} target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 transition-colors">
+              <img src="/rush-cms.svg" alt="Rush CMS" class="w-8 h-8 rounded-md shadow-md" />
+          </a>
+      </p>
+  </Container>
+</footer>

@@ -1,0 +1,68 @@
+---
+import Container from './container.astro'
+import IconMenu from '~icons/ph/list-bold'
+import IconClose from '~icons/ph/x-bold'
+import { getNav, rushConfig } from '@/lib/rush'
+
+let navItems: { label: string; href: string }[] = []
+
+try {
+  const mainMenuId = rushConfig.locales.pt_BR?.navs?.main
+  if (mainMenuId) {
+    const rushNavs = await getNav(mainMenuId)
+    if (rushNavs?.data?.items) {
+      navItems = rushNavs.data.items.map(item => {
+        let href = '#'
+        
+        if (item.type === 'url' && item.url) {
+          // If absolute URL, keep it, otherwise slash it
+          href = item.url.startsWith('http') ? item.url : item.url
+        } else if (item.type === 'entry' && item.entry?.slug) {
+          href = `/${item.entry.slug.pt_BR || item.entry.slug.en || ''}`
+        } else if (item.type === 'collection' && item.collection?.slug) {
+          href = `/${item.collection.slug.pt_BR || item.collection.slug.en || ''}`
+        }
+
+        return { label: item.title, href }
+      })
+    }
+  }
+} catch (e) {
+  console.error("Falha ao carregar o menu principal do Rush CMS:", e)
+}
+
+
+---
+<header id="main-header" class="absolute w-full left-0 top-0 z-20 py-6 md:py-8 flex flex-col md:flex-row items-center border-b border-brand-pink/20 transition-colors duration-300">
+  <Container class="flex justify-between items-center gap-4 w-full">
+    <a href="/" class="text-2xl md:text-3xl font-bold text-brand-pink tracking-tight" title={import.meta.env.SITE_SLOGAN}>
+      { import.meta.env.SITE_NAME }
+    </a>
+    <nav class="hidden rounded-full md:flex gap-8 items-center">
+      {navItems.map(item => (
+        <a
+          href={item.href}
+          class="text-brand-pink font-bold text-lg hover:text-brand-blue transition-colors"
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+    <button id="mobile-menu-btn" class="md:hidden text-brand-pink p-2 cursor-pointer" aria-label="Menu">
+      <IconMenu id="icon-menu" class="w-7 h-7 block" />
+      <IconClose id="icon-close" class="w-7 h-7 hidden" />
+    </button>
+  </Container>
+
+  <nav id="mobile-menu" class="hidden md:hidden w-full bg-white absolute top-full left-0 border-b border-brand-pink/20 flex-col py-4 shadow-xl">
+    {navItems.map(item => (
+      <a
+        href={item.href}
+        class="text-brand-pink font-bold text-lg hover:text-brand-blue transition-colors px-6 py-3 border-b border-brand-pink/10 last:border-0"
+      >
+        {item.label}
+      </a>
+    ))}
+  </nav>
+</header>
+<script src="../scripts/mobile-menu.ts"></script>
